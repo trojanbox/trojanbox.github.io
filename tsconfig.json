@@ -1,0 +1,6 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "src/**/*", "tests/**/*.ts", "playwright.config.ts"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": { "types": ["node"], "allowJs": true, "checkJs": false }
+}

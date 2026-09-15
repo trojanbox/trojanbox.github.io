@@ -1,0 +1,7 @@
+---
+import Base from '../layouts/Base.astro';
+import { articles, archiveGroups, articleUrl, dateText } from '../lib/content';
+const all = await articles();
+const years = archiveGroups(all);
+---
+<Base title="归档" section="归档"><div class="page-heading"><div><p class="eyebrow">THROUGH THE YEARS</p><h1>归档<span class="count">{all.length}</span></h1></div><p>按时间翻阅，<br />每一篇文字都有它的位置。</p></div><nav class="year-nav" aria-label="按年份浏览">{years.map(([year, entries]) => <a href={`#year-${year}`}>{year}<sup>{entries.length}</sup></a>)}</nav>{years.map(([year, entries]) => <section id={`year-${year}`} class="archive-year"><h2>{year}<span>{entries.length} 篇文章</span></h2><ol>{entries.map(entry => <li><time datetime={entry.data.date.toISOString()}>{dateText(entry.data.date).slice(5)}</time><a href={articleUrl(entry)}>{entry.data.title}</a><span class="archive-category">{entry.data.category}</span><span aria-hidden="true">↗</span></li>)}</ol></section>)}{!all.length && <p class="empty-state">归档会随着第一篇文章开始。</p>}</Base>
