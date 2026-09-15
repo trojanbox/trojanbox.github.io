@@ -1,0 +1,25 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { articles, articleUrl, taxonomyUrl, dateText } from '../../lib/content';
+import '../../styles/reading.css';
+import 'katex/dist/katex.min.css';
+export async function getStaticPaths() {
+  const all = await articles();
+  return all.map((entry, i) => ({ params: { slug: entry.id }, props: { entry, newer: all[i - 1], older: all[i + 1] } }));
+}
+const { entry, newer, older } = Astro.props;
+const { Content, headings } = await render(entry);
+const toc = headings.filter(h => h.depth === 2 || h.depth === 3);
+---
+<Base title={entry.data.title} description={entry.data.summary} section="文章" article>
+  <div class="reading-progress" role="progressbar" aria-label="阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="reading-progress-fill"></span></div>
+  <header class="article-header"><a class="back-link" href="/articles/">← 返回文章</a><div class="meta"><a href={taxonomyUrl('categories', entry.data.category)}>{entry.data.category}</a><span>/</span><time datetime={entry.data.date.toISOString()}>{dateText(entry.data.date)}</time>{entry.data.updatedAt && <span>更新于 {dateText(entry.data.updatedAt)}</span>}</div><h1>{entry.data.title}</h1><p class="article-deck">{entry.data.summary}</p><div class="article-tags">{entry.data.tags.map(tag => <a href={taxonomyUrl('tags', tag)}>#{tag}</a>)}</div></header>
+  <div class="reading-toolbar"><span class="eyebrow">READING</span><div><button id="copy-link">复制链接</button><button id="article-settings" aria-haspopup="dialog">字号与主题</button><output id="reading-percent" aria-label="阅读百分比">0%</output></div></div>
+  <div id="resume-reading" class="resume-reading" hidden><span id="resume-label"></span><button id="resume-button">继续阅读 →</button></div>
+  {toc.length >= 2 && <details class="toc" open><summary>本文目录 <span aria-hidden="true">↕</span></summary><nav aria-label="本文目录"><ol>{toc.map(h => <li class:list={{ subheading: h.depth === 3 }}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol></nav></details>}
+  <article id="article-body" class="prose" data-article-id={entry.id}><Content /></article>
+  <div class="article-end"><span aria-hidden="true">◇</span><p>本文完</p><div class="article-tags">{entry.data.tags.map(tag => <a href={taxonomyUrl('tags', tag)}>#{tag}</a>)}</div></div>
+  <nav class="adjacent-articles" aria-label="相邻文章"><div>{newer && <a href={articleUrl(newer)}><span>← 较新一篇</span><strong>{newer.data.title}</strong></a>}</div><div>{older && <a href={articleUrl(older)}><span>较早一篇 →</span><strong>{older.data.title}</strong></a>}</div></nav>
+  <script>import '../../scripts/reading';</script>
+</Base>

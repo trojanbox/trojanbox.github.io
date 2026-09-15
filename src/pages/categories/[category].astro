@@ -1,0 +1,10 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArticleList from '../../components/ArticleList.astro';
+import { articles, groups } from '../../lib/content';
+export async function getStaticPaths() {
+  return groups(await articles(), 'category').map(([name, entries]) => ({ params: { category: name }, props: { name, entries } }));
+}
+const { name, entries } = Astro.props;
+---
+<Base title={`${name} · 分类`} section="文章"><div class="page-heading"><div><p class="eyebrow">CATEGORY / 分类</p><h1>{name}<span class="count">{entries.length}</span></h1></div><a class="text-link" href="/articles/">全部文章 →</a></div><ArticleList entries={entries} /></Base>

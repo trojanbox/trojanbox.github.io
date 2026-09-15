@@ -1,0 +1,19 @@
+---
+import { articleUrl, taxonomyUrl, dateText, type Article } from '../lib/content';
+interface Props { entries: Article[]; compact?: boolean }
+const { entries, compact = false } = Astro.props;
+---
+<div class:list={['article-list', { compact }]}>
+  {entries.map((entry, index) => (
+    <article class="article-item">
+      <span class="item-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+      <div class="article-item-content">
+        <div class="meta"><a href={taxonomyUrl('categories', entry.data.category)}>{entry.data.category}</a><span aria-hidden="true">/</span><time datetime={entry.data.date.toISOString()}>{dateText(entry.data.date)}</time></div>
+        <h2><a href={articleUrl(entry)}>{entry.data.title}<span class="article-arrow" aria-hidden="true">↗</span></a></h2>
+        <p>{entry.data.summary}</p>
+        <div class="article-tags">{entry.data.tags.map(tag => <a href={taxonomyUrl('tags', tag)}>#{tag}</a>)}</div>
+      </div>
+    </article>
+  ))}
+  {entries.length === 0 && <div class="empty-state"><p>这里还没有文章。</p><span>内容会慢慢长出来，先去专题里逛逛。</span><a href="/topics/">浏览专题 ↗</a></div>}
+</div>

@@ -1,0 +1,4 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="暂时离线" noindex><section class="message-page"><p class="eyebrow">OFFLINE</p><h1>暂时断开，<br />阅读不必走远。</h1><p>当前页面还没有离线副本。连接网络后，再打开它。<br />已经缓存的文章仍可从文章列表中阅读。</p><div><a class="outline-button" href="/articles/">返回文章</a><button class="text-link" id="retry-page">重新尝试 ↗</button></div><p class="muted">浏览器清理存储后，离线副本也会随之清除。</p></section><script>document.querySelector('#retry-page')?.addEventListener('click', () => location.reload());</script></Base>
