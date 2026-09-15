@@ -52,19 +52,19 @@ jobs:
           const workflow=fs.readFileSync('.github/workflows/site.yml','utf8').replace('branches: [master]', "branches: [master, 'build/**']");
           fs.writeFileSync('.github/workflows/site.yml',workflow);
           JS
-      - name: Store candidate tree without publishing or updating branches
+      - name: Store ordinary source tree; workflow files remain connector-owned
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
           import subprocess,pathlib,json,os
           files=subprocess.check_output(['git','ls-files','--others','--exclude-standard','-z']).decode().strip('\0').split('\0')
-          tree=[{'path':f,'mode':'100644','type':'blob','content':pathlib.Path(f).read_text()} for f in files if f]
+          tree=[{'path':f,'mode':'100644','type':'blob','content':pathlib.Path(f).read_text()} for f in files if f and not f.startswith('.github/workflows/')]
           pathlib.Path(os.environ['RUNNER_TEMP']+'/candidate-tree.json').write_text(json.dumps({'tree':tree}))
           PY
           TREE_SHA=$(gh api --method POST repos/${GITHUB_REPOSITORY}/git/trees --input "$RUNNER_TEMP/candidate-tree.json" --jq .sha)
-          echo "Candidate tree: $TREE_SHA"
-          printf '{"tree_sha":"%s","source_sha256":"ab578900aaa1ffacd7be0b523dca6d806355ae7b3eb53ddc1a48a025aba23f72"}\n' "$TREE_SHA" > "$RUNNER_TEMP/rebuild-metadata.json"
+          echo "Candidate ordinary-source tree: $TREE_SHA"
+          printf '{"tree_sha":"%s","source_sha256":"ab578900aaa1ffacd7be0b523dca6d806355ae7b3eb53ddc1a48a025aba23f72","workflows_excluded":true}\n' "$TREE_SHA" > "$RUNNER_TEMP/rebuild-metadata.json"
       - run: npm ci
       - run: npm run check
       - run: npm test
