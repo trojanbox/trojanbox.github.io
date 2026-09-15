@@ -1,4 +1,5 @@
-.article-main { max-width: 864px; margin-top: 24px; }
+/* The article variant must win over the base container regardless of CSS import order. */
+.site-main.article-main { max-width: 864px; margin-top: 24px; }
 .article-main > .back-link { margin-bottom: 12px; }
 .reading-surface { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 40px 60px; }
 .article-header h1 { font: 700 34px/1.45 var(--sans); letter-spacing: -.6px; text-wrap: balance; }
@@ -75,7 +76,7 @@
   .reading-surface { padding: 36px 40px; }
 }
 @media (max-width: 560px) {
-  .article-main { width: 100%; margin-top: 0; background: var(--surface); }
+  .site-main.article-main { width: 100%; margin-top: 0; background: var(--surface); }
   .article-main > .back-link { margin: 12px 20px 0; }
   .reading-surface { border: 0; border-radius: 0; padding: 16px 20px 32px; }
   .article-header h1 { font-size: 29px; line-height: 1.5; letter-spacing: -.5px; text-wrap: auto; }
@@ -92,7 +93,7 @@
   .adjacent-articles { gap: 16px; }
 }
 @media print {
-  .article-main { max-width: none; }
+  .site-main.article-main { max-width: none; }
   .reading-surface { border: 0; border-radius: 0; padding: 0; }
   .prose pre { white-space: pre-wrap; }
   .heading-anchor, .article-end, .adjacent-articles { display: none; }

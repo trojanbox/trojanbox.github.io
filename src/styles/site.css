@@ -11,7 +11,8 @@
   --accent-soft: #eff6ff;
   --positive: #16734b;
   --reading-size: 18px;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  /* Explicit CJK sans fallbacks keep Linux from choosing a serif glyph font. */
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', sans-serif;
   --radius: 12px;
 }
 :root[data-theme='dark'] {
