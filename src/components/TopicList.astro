@@ -1,23 +1,19 @@
 ---
 import { statusText, dateText, type Topic } from '../lib/content';
-interface Props { entries: Topic[] }
-const { entries } = Astro.props;
+interface Props { entries: Topic[]; headingLevel?: 'h2' | 'h3' }
+const { entries, headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
 ---
 <div class="topic-list">
   {entries.map(entry => (
     <article class="topic-item">
-      <a class="topic-cover" href={entry.data.url} target="_blank" rel="noopener noreferrer" aria-label={`在独立站点阅读：${entry.data.title}`}>
-        <span class="cover-top">专题 / {entry.data.kind}</span>
-        <span class="cover-title">{entry.data.title}</span>
-        <span class="cover-bottom">INDEPENDENT EXPLORATION <span aria-hidden="true">↗</span></span>
-      </a>
-      <div class="topic-text"><div class="meta"><span class:list={['status-dot', entry.data.status]}></span><span>{statusText[entry.data.status]}</span><span>/ {entry.data.kind}</span></div>
-        <h2><a href={entry.data.url} target="_blank" rel="noopener noreferrer">{entry.data.title} ↗</a></h2>
-        <p>{entry.data.summary}</p>
-        {entry.data.updatedAt && <p class="meta">更新于 {dateText(entry.data.updatedAt)}</p>}
+      <Heading><a href={entry.data.url} target="_blank" rel="noopener noreferrer">{entry.data.title}</a></Heading>
+      <p class="topic-summary">{entry.data.summary}</p>
+      <div class="topic-footer">
+        <div class="meta"><span class="topic-status"><span class:list={['status-dot', entry.data.status]} aria-hidden="true"></span>{statusText[entry.data.status]}</span><span aria-hidden="true">·</span><span>{entry.data.kind}</span>{entry.data.updatedAt && <span>更新于 {dateText(entry.data.updatedAt)}</span>}</div>
         <a class="text-link" href={entry.data.url} target="_blank" rel="noopener noreferrer">进入独立专题 <span aria-hidden="true">↗</span></a>
       </div>
     </article>
   ))}
-  {entries.length === 0 && <p class="empty-state">新的专题正在酝酿。</p>}
+  {entries.length === 0 && <p class="empty-state">暂无专题</p>}
 </div>

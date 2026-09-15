@@ -9,7 +9,8 @@ function syncSettings() {
   const { theme, fontSize } = reader.value;
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.setProperty('--reading-size', `${fontSize}px`);
-  document.querySelector<HTMLMetaElement>('#theme-color')!.content = theme === 'dark' ? '#1c211d' : '#f6f3ed';
+  // CSS owns the palette, including the browser's theme color.
+  document.querySelector<HTMLMetaElement>('#theme-color')!.content = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
   document.querySelectorAll<HTMLButtonElement>('[data-theme-choice]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.themeChoice === theme)));
   font.value = String(fontSize);
   document.querySelector('#font-value')!.textContent = `${fontSize} px`;
