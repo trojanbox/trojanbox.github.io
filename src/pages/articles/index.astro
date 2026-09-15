@@ -4,4 +4,10 @@ import ArticleList from '../../components/ArticleList.astro';
 import { articles, groups, taxonomyUrl } from '../../lib/content';
 const all = await articles();
 ---
-<Base title="文章" section="文章"><div class="page-heading"><div><p class="eyebrow">THE WRITING</p><h1>文章<span class="count">{all.length}</span></h1></div><p>一些随笔，一些思考。<br />按照时间，慢慢积累。</p></div><nav class="category-nav" aria-label="文章分类"><a href="/articles/" aria-current="page">全部文章</a>{groups(all, 'category').map(([name, entries]) => <a href={taxonomyUrl('categories', name)}>{name}<sup>{entries.length}</sup></a>)}</nav><ArticleList entries={all} /></Base>
+<Base title="文章" section="文章">
+  <div class="content-panel listing-page">
+    <header class="page-heading"><h1>文章</h1><p>共 {all.length} 篇，按发布时间排列。</p></header>
+    <nav class="category-nav" aria-label="文章分类"><a href="/articles/" aria-current="page">全部文章</a>{groups(all, 'category').map(([name]) => <a href={taxonomyUrl('categories', name)}>{name}</a>)}</nav>
+    <ArticleList entries={all} />
+  </div>
+</Base>

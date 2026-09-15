@@ -4,4 +4,9 @@ import TopicList from '../components/TopicList.astro';
 import { topics } from '../lib/content';
 const all = await topics();
 ---
-<Base title="专题" section="专题"><div class="page-heading"><div><p class="eyebrow">INDEPENDENT EXPLORATIONS</p><h1>专题<span class="count">{all.length}</span></h1></div><p>每一个专题，都有自己的世界。<br />从这里出发，在独立站点继续阅读。</p></div><div class="topics-page"><TopicList entries={all} /></div><p class="end-note">专题在独立站点更新；这里保留通往它们的入口。</p></Base>
+<Base title="专题" section="专题">
+  <div class="content-panel listing-page">
+    <header class="page-heading"><h1>专题</h1><p>长期连载与独立项目，在各自的站点阅读。</p></header>
+    <div class="topics-page"><TopicList entries={all} /></div>
+  </div>
+</Base>

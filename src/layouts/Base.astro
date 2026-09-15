@@ -22,7 +22,7 @@ const canonical = new URL(Astro.url.pathname, site.url).href;
     <meta property="og:type" content={article ? 'article' : 'website'} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="zh_CN" />
-    <meta name="theme-color" content="#f6f3ed" id="theme-color" />
+    <meta name="theme-color" content="#f6f8fb" id="theme-color" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -32,21 +32,29 @@ const canonical = new URL(Astro.url.pathname, site.url).href;
     <a class="skip-link" href="#main">跳到正文</a>
     <div class="site-frame">
       <header class="site-header">
-        <div class="masthead"><a class="wordmark" href="/" aria-label="trojanbox 首页">trojanbox<span>.</span></a><span class="masthead-note">文字 / 思考 / 探索</span></div>
-        <div class="navigation-row"><nav aria-label="主导航">{nav.map(([name, href]) => <a href={href} aria-current={section === name ? 'page' : undefined}>{name}</a>)}</nav>
-          <button id="open-settings" class="settings-trigger" aria-haspopup="dialog" aria-controls="settings-dialog" title="阅读设置"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6" /></svg><span>阅读设置</span></button>
+        <div class="header-inner">
+          <a class="wordmark" href="/" aria-label="trojanbox 首页"><img src="/icon.svg" alt="" width="32" height="32" /><span>trojanbox</span></a>
+          <nav class="primary-nav" aria-label="主导航">
+            {nav.map(([name, href]) => <a href={href} aria-current={section === name ? 'page' : undefined}>{name}</a>)}
+          </nav>
+          <button id="open-settings" class="settings-trigger" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="阅读设置" title="阅读设置">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6" /></svg><span>阅读设置</span>
+          </button>
         </div>
       </header>
-      <main id="main" class:list={{ 'article-main': article }}><slot /></main>
-      <footer class="site-footer"><div><a class="footer-wordmark" href="/">trojanbox.</a><span>文字留在这里，探索继续。</span></div><div class="footer-links"><a href="/rss.xml">RSS 订阅 ↗</a><a href="https://github.com/trojanbox/trojanbox.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a><button id="footer-install">安装应用 ↗</button></div></footer>
+      <main id="main" class:list={['site-main', { 'article-main': article }]} tabindex="-1"><slot /></main>
+      <footer class="site-footer">
+        <span class="footer-name">trojanbox</span>
+        <div class="footer-links"><a href="/rss.xml">RSS 订阅</a><a href="https://github.com/trojanbox/trojanbox.github.io" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a><button id="footer-install">安装应用</button></div>
+      </footer>
     </div>
     <dialog id="settings-dialog" aria-labelledby="settings-title">
-      <div class="dialog-heading"><div><p class="eyebrow">READING PREFERENCES</p><h2 id="settings-title">把阅读调成喜欢的样子</h2></div><button id="close-settings" class="icon-button" aria-label="关闭阅读设置">×</button></div>
-      <fieldset><legend>页面主题</legend><div class="theme-options"><button data-theme-choice="light" aria-pressed="true"><span class="theme-preview light-preview">Aa</span>纸白</button><button data-theme-choice="dark" aria-pressed="false"><span class="theme-preview dark-preview">Aa</span>墨黑</button></div></fieldset>
-      <fieldset><legend>正文字号 <output id="font-value">18 px</output></legend><div class="font-controls"><button id="font-smaller" aria-label="缩小字号">A−</button><input id="font-size" type="range" min="16" max="26" step="1" value="18" aria-label="正文字号" /><button id="font-larger" aria-label="放大字号">A+</button></div><p class="font-sample">在文字之间，留一点呼吸的空间。</p></fieldset>
+      <div class="dialog-heading"><div><h2 id="settings-title">阅读设置</h2><p>调整主题与正文字号。</p></div><button id="close-settings" class="icon-button" aria-label="关闭阅读设置"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg></button></div>
+      <fieldset><legend>页面主题</legend><div class="theme-options"><button data-theme-choice="light" aria-pressed="true"><span class="theme-preview light-preview" aria-hidden="true">Aa</span><span>浅色</span></button><button data-theme-choice="dark" aria-pressed="false"><span class="theme-preview dark-preview" aria-hidden="true">Aa</span><span>深色</span></button></div></fieldset>
+      <fieldset><legend>正文字号 <output id="font-value">18 px</output></legend><div class="font-controls"><button id="font-smaller" aria-label="缩小字号">A−</button><input id="font-size" type="range" min="16" max="26" step="1" value="18" aria-label="正文字号" /><button id="font-larger" aria-label="放大字号">A+</button></div><p class="font-sample">这段文字用于预览阅读时的字号和行距。</p></fieldset>
       <p id="storage-note" class="settings-note">设置仅保存在当前浏览器，无需登录。</p>
-      <div class="settings-actions"><button id="reset-settings" class="text-link">恢复默认设置</button><button id="install-app" class="outline-button">安装为应用 ↗</button></div>
-      <div id="install-help" class="install-help" hidden><h3>把这个站留在桌面</h3><p>Chrome / Edge：使用地址栏的安装图标或浏览器菜单中的「安装应用」。</p><p>iPhone / iPad：在 Safari 中打开，点「分享」→「添加到主屏幕」。</p><p>macOS Safari：选择「文件」→「添加到程序坞」。安装入口取决于当前浏览器。</p></div>
+      <div class="settings-actions"><button id="reset-settings" class="text-link">恢复默认设置</button><button id="install-app" class="outline-button">安装为应用</button></div>
+      <div id="install-help" class="install-help" hidden><h3>安装应用</h3><p>Chrome / Edge：使用地址栏的安装图标或浏览器菜单中的「安装应用」。</p><p>iPhone / iPad：在 Safari 中打开，点「分享」→「添加到主屏幕」。</p><p>macOS Safari：选择「文件」→「添加到程序坞」。安装入口取决于当前浏览器。</p></div>
     </dialog>
     <div id="update-notice" class="update-notice" role="status" hidden><span>网站有新版本，阅读位置已保留。</span><button id="apply-update">更新</button><button id="dismiss-update" aria-label="稍后更新">×</button></div>
     <p id="toast" class="toast" role="status" hidden></p>

@@ -3,4 +3,10 @@ import Base from '../../layouts/Base.astro';
 import { articles, groups, taxonomyUrl } from '../../lib/content';
 const all = groups(await articles(), 'tags');
 ---
-<Base title="标签" section="文章"><div class="page-heading"><div><p class="eyebrow">FIND A THREAD</p><h1>沿着话题阅读</h1></div><p>同一个话题，<br />可以穿过不同的文章。</p></div><div class="tag-index tags-page">{all.map(([tag, entries]) => <a href={taxonomyUrl('tags', tag)}><span aria-hidden="true">#</span>{tag}<sup>{entries.length}</sup></a>)}</div>{!all.length && <p class="empty-state">暂时还没有标签。</p>}</Base>
+<Base title="标签" section="文章">
+  <div class="content-panel listing-page">
+    <header class="page-heading"><h1>标签</h1><p>按话题查找文章。</p></header>
+    <div class="tag-index tags-page">{all.map(([tag, entries]) => <a href={taxonomyUrl('tags', tag)}><span aria-hidden="true">#</span>{tag}<span class="tag-count">{entries.length} 篇</span></a>)}</div>
+    {!all.length && <p class="empty-state">暂无标签</p>}
+  </div>
+</Base>
