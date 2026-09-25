@@ -22,8 +22,28 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      - name: Preserve production build
+        run: mv dist dist-production
+      - name: Build E2E site with reading fixture
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/content/articles/reading-guide.md')
+          text = path.read_text()
+          marker = 'draft: true'
+          if marker not in text:
+              raise SystemExit('reading-guide draft marker not found')
+          path.write_text(text.replace(marker, 'draft: false', 1))
+          PY
+          npm run build
+          git checkout -- src/content/articles/reading-guide.md
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Restore production build
+        if: always()
+        run: |
+          rm -rf dist
+          mv dist-production dist
       - name: Preserve verification evidence
         if: always()
         uses: actions/upload-artifact@v4
