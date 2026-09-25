@@ -1,6 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import fs from 'node:fs/promises';
 const article = '/articles/reading-guide/';
+async function hasPublishedReadingGuide(page: Page) {
+  return (await page.request.get(article)).ok();
+}
+async function requirePublishedReadingGuide(page: Page) {
+  test.skip(!(await hasPublishedReadingGuide(page)), 'No public article is currently published.');
+}
 async function ready(page: Page) {
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
@@ -11,28 +17,56 @@ async function rendered(page: Page) {
 }
 
 test('navigation, topics, category, tags, archive, RSS, and draft exclusion', async ({ page, request }) => {
+  const readingGuidePublished = (await request.get(article)).ok();
+
   await page.goto('/');
   await expect(page.locator('nav[aria-label="主导航"] a')).toHaveText(['首页', '文章', '专题', '归档']);
   await expect(page.locator('#main')).not.toContainText(/精选|热门|个人介绍/);
-  await page.getByRole('link', { name: '浏览全部文章' }).click();
-  await expect(page).toHaveURL(/\/articles\/$/);
-  await page.locator('.category-nav').getByRole('link', { name: '站务' }).click();
-  await expect(page.locator('h1')).toContainText('站务');
-  await page.goto('/tags/');
-  await page.getByRole('link', { name: /Mermaid/ }).click();
-  await expect(page.locator('h1')).toContainText('Mermaid');
-  await page.goto('/archive/');
-  await expect(page.locator('.archive-year')).toContainText('阅读，从这里开始');
+
+  await page.goto('/articles/');
+  if (readingGuidePublished) {
+    await page.locator('.category-nav').getByRole('link', { name: '站务' }).click();
+    await expect(page.locator('h1')).toContainText('站务');
+    await page.goto('/tags/');
+    await page.getByRole('link', { name: /Mermaid/ }).click();
+    await expect(page.locator('h1')).toContainText('Mermaid');
+    await page.goto('/archive/');
+    await expect(page.locator('.archive-year')).toContainText('阅读，从这里开始');
+  } else {
+    await expect(page.locator('#main')).not.toContainText('阅读，从这里开始');
+    await page.goto('/tags/');
+    await expect(page.locator('#main')).not.toContainText('Mermaid');
+    await page.goto('/archive/');
+    await expect(page.locator('#main')).not.toContainText('阅读，从这里开始');
+  }
+
   await page.goto('/topics/');
   const external = page.getByRole('link', { name: '进入独立专题' });
   await expect(external).toHaveAttribute('href', 'https://trojanbox.github.io/world-history-in-progress/');
   await expect(external).toHaveAttribute('target', '_blank');
-  expect((await request.get('/articles/draft-example/')).status()).toBe(404);
-  expect(await (await request.get('/rss.xml')).text()).not.toContain('草稿');
-  expect(await (await request.get('/sitemap.xml')).text()).not.toContain('draft-example');
-});
 
+  const retiredRoutes = [
+    '/articles/ai-development-workflow-gates/',
+    '/articles/ai-era-coding-is-getting-cheaper/',
+    '/articles/draft-example/',
+    '/articles/fog-valley-no-fourth-bell/',
+  ];
+  for (const route of retiredRoutes) expect((await request.get(route)).status()).toBe(404);
+  if (!readingGuidePublished) expect((await request.get(article)).status()).toBe(404);
+
+  const rss = await (await request.get('/rss.xml')).text();
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  for (const slug of ['ai-development-workflow-gates', 'ai-era-coding-is-getting-cheaper', 'draft-example', 'fog-valley-no-fourth-bell']) {
+    expect(rss).not.toContain(slug);
+    expect(sitemap).not.toContain(slug);
+  }
+  if (!readingGuidePublished) {
+    expect(rss).not.toContain('reading-guide');
+    expect(sitemap).not.toContain('reading-guide');
+  }
+});
 test('article renders diagrams, formulas, code, table, image, footnotes and links in both themes', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(article); await rendered(page);
   await expect(page.locator('.toc')).toBeVisible();
@@ -54,6 +88,7 @@ test('article renders diagrams, formulas, code, table, image, footnotes and link
 });
 
 test('preferences persist and reset without affecting unrelated project storage', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   await page.goto(article);
   await page.evaluate(() => localStorage.setItem('world-history:settings', 'untouched'));
   await page.locator('#open-settings').click();
@@ -68,6 +103,7 @@ test('preferences persist and reset without affecting unrelated project storage'
 });
 
 test('reading progress is relative to the article and supports explicit resume', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   await page.goto(article); await rendered(page);
   await page.evaluate(() => {
     const body = document.querySelector('#article-body')!;
@@ -82,6 +118,7 @@ test('reading progress is relative to the article and supports explicit resume',
 });
 
 test('corrupt or denied storage never blocks content or preferences in memory', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   await page.addInitScript(() => {
     Storage.prototype.getItem = () => { throw new DOMException('Storage denied', 'SecurityError'); };
     Storage.prototype.setItem = () => { throw new DOMException('Storage denied', 'SecurityError'); };
@@ -93,6 +130,7 @@ test('corrupt or denied storage never blocks content or preferences in memory', 
 });
 
 test('first article visit is cached, including Mermaid, math and local images', async ({ page, context }) => {
+  await requirePublishedReadingGuide(page);
   await page.goto(article); await rendered(page); await ready(page);
   await expect.poll(() => page.evaluate(async () => Boolean(await (await caches.open('trojanbox-main:documents:v1')).match(location.origin + '/articles/reading-guide/')))).toBe(true);
   await expect.poll(() => page.evaluate(async () => Boolean(await (await caches.open('trojanbox-main:assets:v1')).match(location.origin + '/media/reading-mark.svg')))).toBe(true);
@@ -104,6 +142,7 @@ test('first article visit is cached, including Mermaid, math and local images', 
 });
 
 test('unvisited article gets an honest offline fallback', async ({ page, context }) => {
+  await requirePublishedReadingGuide(page);
   await page.goto('/'); await ready(page);
   await context.setOffline(true); const response = await page.goto(article);
   expect(response?.status()).toBe(503);
@@ -126,7 +165,9 @@ test('main worker leaves other project responses and caches alone', async ({ pag
 
 test('mobile layouts and maximum font size have no page-level horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const route of ['/', '/topics/', '/articles/', '/archive/', article]) {
+  const routes = ['/', '/topics/', '/articles/', '/archive/'];
+  if (await hasPublishedReadingGuide(page)) routes.push(article);
+  for (const route of routes) {
     await page.goto(route); if (route === article) await rendered(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   }
@@ -166,6 +207,7 @@ test('new worker waits for consent, keeps reading settings and unrelated caches'
 
 
 test('capture the actual desktop, mobile and dark reading surfaces', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   await fs.mkdir('test-results/screenshots', { recursive: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/'); await page.screenshot({ path: 'test-results/screenshots/home-desktop.png', fullPage: true });

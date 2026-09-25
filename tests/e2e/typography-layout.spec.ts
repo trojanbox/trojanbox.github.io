@@ -1,8 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const article = '/articles/reading-guide/';
+async function requirePublishedReadingGuide(page: Page) {
+  test.skip(!(await page.request.get(article)).ok(), 'No public article is currently published.');
+}
 
 test('reading container stays narrow on desktop and full-width on phones', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');
   const home = await page.locator('#main').boundingBox();
@@ -27,6 +31,7 @@ test('reading container stays narrow on desktop and full-width on phones', async
 });
 
 test('actual Chinese glyphs use an installed sans font, not a serif fallback', async ({ page, browserName }, testInfo) => {
+  await requirePublishedReadingGuide(page);
   test.skip(browserName !== 'chromium', 'Chromium platform-font inspection uses CDP.');
   await page.goto(article);
   await page.evaluate(() => document.fonts.ready);

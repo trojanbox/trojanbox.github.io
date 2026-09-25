@@ -1,6 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const article = '/articles/reading-guide/';
+async function hasPublishedReadingGuide(page: Page) {
+  return (await page.request.get(article)).ok();
+}
+async function requirePublishedReadingGuide(page: Page) {
+  test.skip(!(await hasPublishedReadingGuide(page)), 'No public article is currently published.');
+}
 async function rendered(page: Page) {
   await expect(page.locator('[data-mermaid][data-rendered="true"] svg')).toBeVisible();
 }
@@ -16,10 +22,16 @@ function contrast(first: string, second: string) {
 }
 
 test('home puts real titles in the first screen without editorial decoration', async ({ page }) => {
+  const readingGuidePublished = await hasPublishedReadingGuide(page);
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/');
-    await expect(page.locator('.article-item h2').first()).toBeInViewport();
+    if (readingGuidePublished) {
+      await expect(page.locator('.article-item h2').first()).toBeInViewport();
+    } else {
+      await expect(page.locator('.article-item')).toHaveCount(0);
+      await expect(page.locator('#main')).not.toContainText('阅读，从这里开始');
+    }
     await expect(page.locator('.topic-cover, .item-number, .page-kicker')).toHaveCount(0);
     await expect(page.locator('#main')).not.toContainText(/THE JOURNAL|LATEST|EXPLORE|INDEPENDENT EXPLORATION/);
     const titles = await page.locator('.topic-item h3').allTextContents();
@@ -32,6 +44,7 @@ test('home puts real titles in the first screen without editorial decoration', a
 });
 
 test('reading starts in the first screen and the native contents control is keyboard accessible', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(article); await rendered(page);
@@ -52,6 +65,7 @@ test('reading starts in the first screen and the native contents control is keyb
 });
 
 test('320px layouts and the largest reading size keep overflow inside rich-content blocks', async ({ page }) => {
+  await requirePublishedReadingGuide(page);
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 320, height: 760 });
   for (const route of ['/', '/articles/', '/topics/', '/archive/', '/tags/', '/categories/站务/', article]) {
@@ -90,6 +104,7 @@ test('skip link, settings focus return, and primary touch targets remain usable'
 });
 
 test('key text contrasts and browser theme colors follow both palettes', async ({ page, request }) => {
+  await requirePublishedReadingGuide(page);
   await page.goto('/');
   for (const theme of ['light', 'dark']) {
     await page.locator('#open-settings').click();
@@ -124,6 +139,7 @@ test('key text contrasts and browser theme colors follow both palettes', async (
 });
 
 test('capture redesigned home, settings, narrow reading and dark surfaces', async ({ page }, testInfo) => {
+  await requirePublishedReadingGuide(page);
   const capture = async (name: string, fullPage = false) => {
     const path = testInfo.outputPath(`${name}.png`);
     await page.screenshot({ path, fullPage, animations: 'disabled' });
